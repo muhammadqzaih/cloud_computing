@@ -110,51 +110,115 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 ```
+# Docker Compose Configuration
 
-Docker Compose File
-The docker-compose.yml file orchestrates the three services (database, backend, and frontend) using Docker Hub images (after they are built and pushed).
+## Overview
+This project uses Docker Compose to manage multiple services, including a MySQL database, an Express backend, and a React frontend. The `docker-compose.yml` file defines these services, their configurations, and how they interact with each other.
 
-```dockerfile
+## Docker Compose Services
 
-services:
+### **1. Database Service (MySQL)**
+```yaml
   db:
-    image: muhammadqzih/urgentnews_db:latest  # Docker Hub repository for MySQL image
+    build: ./db
     container_name: mysql_container
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Mohammad111222333@
       MYSQL_DATABASE: urgentNewsDB
     ports:
-      - "3307:3306"  # Maps host port 3307 to container port 3306
+      - "3307:3306"  
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:  
+      - urgent-news-network  
+```
+- **`build: ./db`** → Builds the MySQL container using the `Dockerfile` in the `db/` directory.
+- **`container_name: mysql_container`** → Assigns a custom name to the container.
+- **`restart: always`** → Ensures the container restarts if it stops unexpectedly.
+- **`environment`** → Sets MySQL credentials and database name.
+- **`ports`** → Maps port `3306` (inside container) to `3307` (host machine).
+- **`volumes`** → Persists MySQL data even if the container is removed.
+- **`networks`** → Connects to `urgent-news-network` for communication with other services.
 
+### **2. Backend Service (Express.js API)**
+```yaml
   backend:
-    image: muhammadqzih/urgentnews_backend:latest  # Docker Hub repository for Express backend
+    build: ./backend
     container_name: express_backend
+    restart: always
     depends_on:
       - db
+    ports:
+      - "5000:5000"
     environment:
       DB_HOST: db
       DB_USER: root
       DB_PASSWORD: Mohammad111222333@
       DB_NAME: urgentNewsDB
-    ports:
-      - "5000:5000"
+    networks:  
+      - urgent-news-network  
+```
+- **`build: ./backend`** → Builds the backend service using `Dockerfile` in `backend/`.
+- **`container_name: express_backend`** → Assigns a name to the backend container.
+- **`restart: always`** → Ensures the container restarts if stopped.
+- **`depends_on: - db`** → Ensures the database starts before the backend.
+- **`ports`** → Maps port `5000` inside the container to `5000` on the host.
+- **`environment`** → Configures database connection details.
+- **`networks`** → Connects to the same network as the database.
 
+### **3. Frontend Service (React App)**
+```yaml
   frontend:
-    image: muhammadqzih/urgentnews_react_frontend:latest  # Docker Hub repository for React app
+    build:
+      context: ./frontend/news_fornt_app
     container_name: react_frontend
+    restart: always
     depends_on:
       - backend
     ports:
-      - "3000:80"  # Maps host port 3000 to container port 80
+      - "3000:80"
+    networks:  
+      - urgent-news-network  
+```
+- **`build: context: ./frontend/news_fornt_app`** → Builds the frontend using the specified directory.
+- **`container_name: react_frontend`** → Assigns a custom name to the frontend container.
+- **`restart: always`** → Ensures the container restarts if stopped.
+- **`depends_on: - backend`** → Ensures the backend starts before the frontend.
+- **`ports`** → Maps port `80` (inside container) to `3000` (host machine) to serve the React app.
+- **`networks`** → Connects to the shared network for communication with backend services.
 
+## Volumes
+```yaml
 volumes:
   mysql_data:
-Notes on Networking:
-
-Docker Compose automatically creates a default network so that services can communicate with each other using their service names (e.g., the backend connects to MySQL using db as the hostname).
 ```
+- **`mysql_data`** → Stores MySQL data persistently to prevent data loss when containers stop.
+
+## Networking Configuration
+```yaml
+networks:
+  urgent-news-network:
+    driver: bridge
+```
+- **`urgent-news-network`** → A custom Docker network ensuring isolated communication between services.
+- **`driver: bridge`** → Uses a bridge network, allowing containers to communicate while remaining isolated from other networks.
+
+## Running the Project
+To build and run all services, use:
+```sh
+docker-compose up --build -d
+```
+To stop all running services:
+```sh
+docker-compose down
+```
+To check running containers:
+```sh
+docker ps
+```
+
+
 
 ## Commands Summary
 
