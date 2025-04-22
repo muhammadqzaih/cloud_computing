@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urgent News</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { text-align: center; }
+        .news-container { max-width: 600px; margin: auto; }
+        .news-item { border-bottom: 1px solid #ddd; padding: 10px; }
+        .news-title { font-size: 20px; font-weight: bold; }
+        .news-content { margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Urgent News</h1>
+    <div class="news-container" id="newsContainer">
+        <!-- News items will be inserted here -->
+    </div>
+
+    <script>
+        async function fetchNews() {
+            try {
+                const response = await fetch("http://localhost:5000/api/news/getUrgentNews");
+                const news = await response.json();
+
+                const container = document.getElementById("newsContainer");
+                container.innerHTML = ""; 
+
+                news.forEach(item => {
+                    const newsItem = document.createElement("div");
+                    newsItem.classList.add("news-item");
+                    newsItem.innerHTML = `
+                        <div class="news-title">${item.title}</div>
+                        <div class="news-content">${item.content}</div>
+                    `;
+                    container.appendChild(newsItem);
+                });
+            } catch (error) {
+                console.error("Error fetching news:", error);
+            }
+        }
+
+        fetchNews();
+    </script>
+</body>
+</html>

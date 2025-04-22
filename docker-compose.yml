@@ -1,0 +1,49 @@
+services:
+  db:
+    build: ./db
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mohammad111222333@
+      MYSQL_DATABASE: urgentNewsDB
+    ports:
+      - "3307:3306"  
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:  
+      - urgent-news-network  
+      
+  backend:
+    build: ./backend
+    container_name: express_backend
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: Mohammad111222333@
+      DB_NAME: urgentNewsDB
+    networks:  
+      - urgent-news-network  
+
+  frontend:
+    build: 
+      context: ./frontend/news_fornt_app
+    container_name: react_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80" 
+    networks:  
+      - urgent-news-network  
+      
+volumes:
+  mysql_data:
+
+networks:
+  urgent-news-network:
+    driver: bridge
